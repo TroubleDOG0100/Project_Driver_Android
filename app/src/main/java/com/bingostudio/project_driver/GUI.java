@@ -27,7 +27,11 @@ public class GUI {
 	private static final int BUTTON_YSize = 220;
 	
 	private static final String[] DS_BUTTONS = {"Continue", "Share score"};
-	
+
+	private static final int BUTTON_FILL_COLOR = 0xFF555555;
+
+	private static final int BUTTON_TEXT_FILL_COLOR = 0xFFFFFFFF;
+
 	private States stateKeeper;
 	private int score = 0;
 	private ArrayList<Rectangle> currentButtons = new ArrayList<>();
@@ -41,24 +45,25 @@ public class GUI {
 		this.game = game;
 		this.stateKeeper = game.state;
 
+		// TODO: The text size should scale based on screen size.
 		defaultPaint = new Paint();
 		defaultPaint.setColor(0xFFFFFFFF);
-		defaultPaint.setTextSize(120);
+		defaultPaint.setTextSize(100);
 		defaultPaint.setStyle(Paint.Style.FILL);
 		defaultPaint.setTypeface(Typeface.DEFAULT);
 
 		titlePaint = new Paint();
 		titlePaint.setColor(0xFFFFFFFF);
-		titlePaint.setTextSize(180);
+		titlePaint.setTextSize(160);
 		titlePaint.setTypeface(Typeface.DEFAULT_BOLD);
 
 		buttonPaint = new Paint();
-		buttonPaint.setColor(0xFFFFFFFF);
-		buttonPaint.setTextSize(150);
+		buttonPaint.setColor(BUTTON_TEXT_FILL_COLOR);
+		buttonPaint.setTextSize(120);
 		buttonPaint.setTypeface(Typeface.DEFAULT);
 
 		boxPaint = new Paint();
-		boxPaint.setColor(0xFF555555);
+		boxPaint.setColor(BUTTON_FILL_COLOR);
 	}
 
 	public void tick() {

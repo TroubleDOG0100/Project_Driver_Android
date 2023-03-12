@@ -26,11 +26,12 @@ public class Rectangle {
 		this(0,0,0,0, Game.DEFAULT_COLOR);
 	}
 	
+	//Checks whether this rectangle intersects the given otherRect.
 	public boolean intersects(Rectangle otherRect) {
-		if (x < otherRect.x || x > (otherRect.x + otherRect.w))
+		if ((x + w) < otherRect.x || x > (otherRect.x + otherRect.w))
 			return false;
 		
-		if (y < otherRect.y || y > (otherRect.y + otherRect.h))
+		if ((y + h) < otherRect.y || y > (otherRect.y + otherRect.h))
 			return false;
 
 		return true;
