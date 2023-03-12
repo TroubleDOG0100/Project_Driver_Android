@@ -62,6 +62,7 @@ public class RenderHandler {
 
 	public void renderSprite(Bitmap spriteSheet, int x, int y, int row, int column, int rowSize, int columnSize, Canvas canvas) {
 		//long spriteStart = System.currentTimeMillis();
+
 		int spriteXPos = rowSize * row;
 		int spriteYPos = columnSize * column;
 		canvas.drawBitmap(spriteSheet,new Rect(spriteXPos, spriteYPos,rowSize + spriteXPos, columnSize + spriteYPos), new Rect(x, y, rowSize + x, columnSize + y), null);

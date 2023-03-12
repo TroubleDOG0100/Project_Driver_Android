@@ -17,6 +17,8 @@ public class Player extends GameObject {
 
  	private int sideDir = 0;
  	private int topBottomDir = 0;
+
+	private Vector2D moveVector = new Vector2D();
 	
 	public Player(Game game, Rectangle plrRect) {
 		super(plrRect.x, plrRect.y, plrRect.w, plrRect.h, ID.Player);
@@ -34,14 +36,18 @@ public class Player extends GameObject {
 		topBottomDir = dir;
 	}
 
+	public void setMoveVector(Vector2D vec){
+		moveVector = vec;
+	}
+
 	@Override
 	public void tick() {
 		// Plr speed is different depending on how close the player is to the oncoming car spawn.
 		int plrSpeed = speeds[(int) rect.y/(Game.displayMetrics.heightPixels/speeds.length)];
 		
 		// Player input registration
-		rect.x += plrSpeed * sideDir;
-		rect.y += plrSpeed * topBottomDir;
+		rect.x += plrSpeed * moveVector.x;
+		rect.y += plrSpeed * moveVector.y;
 		
 		int estimatedTopBarHeight = 0;
 		

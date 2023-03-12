@@ -36,7 +36,11 @@ public class Rectangle {
 
 		return true;
 	}
-	
+
+	public Vector2D getCenter(){
+		return new Vector2D(x + w/2, y + h/2);
+	}
+
 	@Override
 	public String toString() {
 		return "[" + x + " " + y + " " + w + " " + h + "]";

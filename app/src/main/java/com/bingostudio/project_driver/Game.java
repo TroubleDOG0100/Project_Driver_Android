@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.HashMap;
+import java.util.Vector;
 
 public class Game implements Runnable {
 
@@ -42,7 +43,18 @@ public class Game implements Runnable {
 
 	public static DisplayMetrics displayMetrics = new DisplayMetrics();
 
-	public static enum States {
+	public static class settings{
+		public enum TOUCH_CONTROLS {
+			FRAME_BASED,
+			REL_TO_PLAYER,
+			REL_TO_CENTER
+		}
+
+		public static TOUCH_CONTROLS currentControls = TOUCH_CONTROLS.FRAME_BASED;
+
+	}
+
+	public enum States {
 		Playing,
 		Death,
 		Start;
@@ -58,10 +70,6 @@ public class Game implements Runnable {
 	private int touchRectSize;
 
 	public States state = States.Start;
-
-	public void setState(States newState) {
-		state = newState;
-	}
 
 	public Game(MainActivity mainAct) {
 		this.mainAct = mainAct;
@@ -107,29 +115,51 @@ public class Game implements Runnable {
 		System.out.println(displayMetrics.widthPixels + " " + displayMetrics.heightPixels);
 	}
 
+	static final Vector2D MOVE_VECTOR_SCALE = new Vector2D(500, 1000);
+	static final Vector2D MOVE_VECTOR_MAX = new Vector2D(5, 10);
+
 	public void screenPressed(int tX, int tY) {
 		if (player != null) {
-			int sideDir = 0;
-			int topBottomDir = 0;
+			Vector2D vec2 = new Vector2D();
+			switch (settings.currentControls) {
+				case FRAME_BASED: {
+					Rectangle touchRectangle = new Rectangle(tX,tY,1,1);
 
-			Rectangle touchRectangle = new Rectangle(tX,tY,1,1);
+					if (touchRectangle.intersects(screenTouchRect[0]))
+						//Top screen rectangle
+						vec2.y += -1;
+					else if (touchRectangle.intersects(screenTouchRect[1]))
+						//Bottom screen rectangle
+						vec2.y += 1;
+					else if (touchRectangle.intersects(screenTouchRect[2]))
+						//Left screen rectangle
+						vec2.x += -1;
+					else if (touchRectangle.intersects(screenTouchRect[3]))
+						//Right screen rectangle
+						vec2.x += 1;
 
-			if (touchRectangle.intersects(screenTouchRect[0]))
-				//Top screen rectangle
-				topBottomDir = -1;
-			else if (touchRectangle.intersects(screenTouchRect[1]))
-				//Bottom screen rectangle
-				topBottomDir = 1;
-			else if (touchRectangle.intersects(screenTouchRect[2]))
-				//Left screen rectangle
-				sideDir = -1;
-			else if (touchRectangle.intersects(screenTouchRect[3]))
-				//Right screen rectangle
-				sideDir = 1;
+					break;
+				}
+				case REL_TO_PLAYER:
+				case REL_TO_CENTER:{
+					Vector2D center = null;
+					if (settings.currentControls == settings.TOUCH_CONTROLS.REL_TO_PLAYER){
+						center = player.rect.getCenter();
+					}else{
+						center = new Vector2D(displayMetrics.widthPixels/2, displayMetrics.heightPixels/2);
+					}
 
+					// MOVE_VECTOR_SCALE determines the sensitivity of player motion from touch.
+					float xDeltaScaled = (center.x - tX) / MOVE_VECTOR_SCALE.x;
+					float yDeltaScaled = (center.y - tY) / MOVE_VECTOR_SCALE.y;
 
-			player.setSideDir(sideDir);
-			player.setTopBottom(topBottomDir);
+					vec2.x = -clamp(xDeltaScaled, Integer.MIN_VALUE, MOVE_VECTOR_MAX.x);
+					vec2.y = -clamp(yDeltaScaled, Integer.MIN_VALUE, MOVE_VECTOR_MAX.y);
+				}
+			}
+			System.out.println(vec2);
+
+			player.setMoveVector(vec2);
 		}
 
 		gui.onScreenPressed(tX,tY);
@@ -137,8 +167,7 @@ public class Game implements Runnable {
 
 	public void screenUnPressed() {
 		if (player != null){
-			player.setSideDir(0);
-			player.setTopBottom(0);
+			player.setMoveVector(new Vector2D());
 		}
 	}
 
@@ -148,6 +177,24 @@ public class Game implements Runnable {
 		return false;
 	}
 
+	public void setState(States newState) {
+		switch (newState){
+			case Playing: {
+				handler.clearCars();
+				game:startPlayer();
+				break;
+			}case Death: {
+				System.out.println("Death");
+				break;
+			}case Start: {
+				System.out.println("Start");
+				break;
+			}
+		}
+
+		state = newState;
+	}
+
 	public synchronized void start() {
 		setGameRunning(true);
 		gameThread = new Thread(this);
@@ -155,9 +202,10 @@ public class Game implements Runnable {
 	}
 
 	public void startPlayer(){
-		state = States.Playing;
+		//Reinitialize score to 0, as a new game has started.
+		gui.setScore(0);
 
-		player = new Player(this, new Rectangle(displayMetrics.widthPixels/2 + 250/2,displayMetrics.heightPixels - 384,230,360));
+		player = new Player(this, new Rectangle(displayMetrics.widthPixels/2 - 190/2,displayMetrics.heightPixels - 384,230,360));
 		handler.addObj(player);
 	}
 
@@ -168,10 +216,10 @@ public class Game implements Runnable {
 	public synchronized void stop() {
 		boolean retry = true;
 		while (retry) {
-				try {
-					setGameRunning(false);
-					gameThread.join();
-				}catch (InterruptedException e) {
+			try {
+				setGameRunning(false);
+				gameThread.join();
+			}catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			retry = false;
@@ -179,7 +227,6 @@ public class Game implements Runnable {
 	}
 
 	public void sendScreenShot(Bitmap screenShoot){
-
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		screenShoot.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
 		String path = MediaStore.Images.Media.insertImage(mainAct.getContentResolver(), screenShoot, "Screeny", "This is a test :)");
@@ -200,7 +247,7 @@ public class Game implements Runnable {
 		renderH.renderRect(rects[0],canvas);
 		renderH.renderRect(rects[1],canvas);
 
-		//Drops frames significantly.
+		//Drops frames significantly. (It seems good now :) )
 		for (int i = 0; i < handler.gameObj.size(); i++){
 			GameObject tempObj = handler.gameObj.get(i);
 			tempObj.render(canvas);
@@ -250,9 +297,9 @@ public class Game implements Runnable {
 
 	public static float clamp(float var, float min, float max) {
 		if (var >= max) {
-			return var = max;
+			return max;
 		}else if (var <= min) {
-			return var = min;
+			return min;
 		}else {
 			return var;
 		}

@@ -178,7 +178,6 @@ public class GUI {
 					case 0:{
 							if (game.state == States.Start) {
 								game.setState(States.Playing);
-								game.startPlayer();
 							}else if (game.state == States.Death) {
 								game.setState(States.Start);
 							}
@@ -197,14 +196,6 @@ public class GUI {
 								game.renderOnCanvas(shootCanvas);
 
 								game.sendScreenShot(screenShoot);
-
-								/*Intent sendScore = new Intent();
-								sendScore.setAction(Intent.ACTION_SEND);
-
-								sendScore.setType("text/plain");
-								sendScore.putExtra(Intent.EXTRA_TEXT, "Hey! I just scored " + score + " in Bingo Driver, isn't that awesome!");
-
-								game.startActivityFromIntent(sendScore);*/
 							}
 						}
 						break;
