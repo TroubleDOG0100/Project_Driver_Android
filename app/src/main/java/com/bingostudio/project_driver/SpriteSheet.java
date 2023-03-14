@@ -23,4 +23,10 @@ public class SpriteSheet {
 		this.ySprites = sheetImg.getHeight()/columnSize;
 	}
 
+	public Rectangle getTileAt(int row, int column){
+		// Return rectangle.
+		System.out.println(column * rowSize + " / " + row * columnSize);
+		return new Rectangle(column * rowSize, row * columnSize, rowSize, columnSize);
+	}
+
 }

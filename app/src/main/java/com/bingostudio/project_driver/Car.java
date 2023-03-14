@@ -1,6 +1,8 @@
 package com.bingostudio.project_driver;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 
 import java.util.Random;
 
@@ -10,34 +12,53 @@ public class Car extends GameObject {
 	private RenderHandler renderH;
 	private Handler handler;
 	
-	public static final Rectangle CAR_SIZE = new Rectangle(0,0,230,360);
-	
-	private int spriteRow;
-	private int spriteColumn;
+	public static Vector2D car_size_px = new Vector2D();
+	final static int TOTAL_CAR_COUNT_IN_SHEET = 5;
+	private static final Vector2D ORIGINAL_CAR_SIZE_PX = new Vector2D(60, 91);
+	private static final int CAR_MARGIN_LR = 50;
+
+	public static final Bitmap[] trafficCars = new Bitmap[TOTAL_CAR_COUNT_IN_SHEET];
+
+	private int bitmapID;
+
 	private int carSpeed;
 	
 	private Random r = new Random();
 	
 	public Car(Game game, int x, int y) {
-		super(x, y, CAR_SIZE.w, CAR_SIZE.h, ID.Car);
+		super(x, y, (int) car_size_px.x, (int) car_size_px.y, ID.Car);
 		this.game = game;
 		this.renderH = game.getRenderH();
 		this.handler = game.getHandler();
-		
-		spriteColumn = (int) Game.clamp(r.nextInt(2), 0, 1);
-		spriteRow = r.nextInt(3);
-		
-		// Bush in that sprite!
-		if (spriteRow == 2 && spriteColumn == 1)
-			spriteColumn = 0;
-		
-		//Check if the traffic doesn't have the same car sprite as the player.
-		if (spriteColumn == 0 && spriteRow == 0)
-			spriteColumn = 1;
-		
-		this.carSpeed = 10;//(int) Game.clamp(game.getGui().getScore()/100, 7, 30);
-		
-		//this.carSprite = game.getSpriteSheet().getSprite(spriteRow, spriteColumn);
+
+		bitmapID = 1 + r.nextInt(4);
+
+		// Traffic speed will increase with greater score.
+		this.carSpeed = (int) Game.clamp(game.getGui().getScore()/100, 8, 15);
+	}
+
+	public static void computeCarDimensions(){
+		Car.car_size_px.x = Game.roadWidth/Game.MAX_VEHICLES_IN_ROW - CAR_MARGIN_LR;
+		// Now scale on the Y, so that the aspect ratio is not lost.
+		Car.car_size_px.y = (Game.propSheetScale.y*ORIGINAL_CAR_SIZE_PX.y*((Car.car_size_px.x)/(Game.propSheetScale.x * ORIGINAL_CAR_SIZE_PX.x)));
+	}
+
+	// Extracts from given spriteSheet (which should correspond to resource "car_spritesalpha.png") car bitmaps and stores them in trafficCars array.
+	public static void parseCarsFromSprite(SpriteSheet spriteSheet){
+		Vector2D rowAndColumn = new Vector2D(0,0);
+		Vector2D sheetScale = Game.propSheetScale;
+
+		for (int i = 0; i <= 4; i++){
+			rowAndColumn.setTo(i % 3, (float) Math.floor(i/3));
+
+			System.out.println(rowAndColumn.y + " " + rowAndColumn.x);
+
+			Rectangle resRec = spriteSheet.getTileAt((int) rowAndColumn.y, (int) rowAndColumn.x);
+			// Take from w un h the bitmap.
+			Bitmap snapshot = Bitmap.createBitmap(spriteSheet.sheetImg, resRec.x, resRec.y, (int) (ORIGINAL_CAR_SIZE_PX.x*sheetScale.x), (int) (ORIGINAL_CAR_SIZE_PX.y * sheetScale.y));
+
+			trafficCars[i] = Bitmap.createScaledBitmap(snapshot, (int) Car.car_size_px.x, (int) Car.car_size_px.y, false);
+		}
 	}
 
 	@Override
@@ -51,7 +72,7 @@ public class Car extends GameObject {
 
 	@Override
 	public void render(Canvas canvas) {
-		renderH.renderSprite(game.getPropSheet().sheetImg, rect.x, rect.y, spriteRow, spriteColumn, game.getPropSheet().rowSize, game.getPropSheet().columnSize,canvas);
+		renderH.renderImg(Car.trafficCars[bitmapID], rect.x, rect.y, canvas);
 	}
 	
 }

@@ -32,10 +32,13 @@ public class GUI {
 
 	private static final int BUTTON_TEXT_FILL_COLOR = 0xFFFFFFFF;
 
+	private static final int TITLE_MARGIN_X = 80;
+
 	private States stateKeeper;
 	private int score = 0;
 	private ArrayList<Rectangle> currentButtons = new ArrayList<>();
 
+	public static float global_text_scale = 1.f;
 	private Paint defaultPaint;
 	private Paint titlePaint;
 	private Paint buttonPaint;
@@ -45,21 +48,27 @@ public class GUI {
 		this.game = game;
 		this.stateKeeper = game.state;
 
-		// TODO: The text size should scale based on screen size.
-		defaultPaint = new Paint();
-		defaultPaint.setColor(0xFFFFFFFF);
-		defaultPaint.setTextSize(100);
-		defaultPaint.setStyle(Paint.Style.FILL);
-		defaultPaint.setTypeface(Typeface.DEFAULT);
-
+		// Current method of setting textSize relative to available screen width seems janky.
 		titlePaint = new Paint();
 		titlePaint.setColor(0xFFFFFFFF);
 		titlePaint.setTextSize(160);
 		titlePaint.setTypeface(Typeface.DEFAULT_BOLD);
+		titlePaint.setAntiAlias(true);
+
+		// Checks by what factor does the title text must be scaled down to fit within the screen + margin.
+		float textWidth = titlePaint.measureText(Game.TITLE);
+		global_text_scale = textWidth/(Game.displayMetrics.widthPixels - TITLE_MARGIN_X);
+		titlePaint.setTextSize(160/global_text_scale);
+
+		defaultPaint = new Paint();
+		defaultPaint.setColor(0xFFFFFFFF);
+		defaultPaint.setTextSize(100/global_text_scale);
+		defaultPaint.setStyle(Paint.Style.FILL);
+		defaultPaint.setTypeface(Typeface.DEFAULT);
 
 		buttonPaint = new Paint();
 		buttonPaint.setColor(BUTTON_TEXT_FILL_COLOR);
-		buttonPaint.setTextSize(120);
+		buttonPaint.setTextSize(120/global_text_scale);
 		buttonPaint.setTypeface(Typeface.DEFAULT);
 
 		boxPaint = new Paint();
@@ -109,7 +118,6 @@ public class GUI {
 						int boxYPos = (TITLE_YPOS + titleSizeY + 260) + (350 * i);
 
 						canvas.drawRect(new Rect(boxXPos, boxYPos,  boxXPos + BUTTON_XSize, boxYPos + BUTTON_YSize),	boxPaint);
-						//g.drawRect(boxXPos, boxYPos, 160, 60);
 						
 						//Add text
 						drawRectCenter(canvas, SM_BUTTONS[i], boxXPos, boxYPos, BUTTON_XSize, BUTTON_YSize);
@@ -143,8 +151,6 @@ public class GUI {
 						int boxXPos = (Game.displayMetrics.widthPixels/2) - BUTTON_XSize/2;
 						int boxYPos = (Game.displayMetrics.heightPixels - 700) + (350 * i);
 						
-						//g.drawRect(boxXPos, boxYPos, 160, 60);
-						
 						//Add text
 						drawRectCenter(canvas, DS_BUTTONS[i], boxXPos, boxYPos, BUTTON_XSize, BUTTON_YSize);
 						
@@ -157,7 +163,6 @@ public class GUI {
 	}
 	
 	//Method for drawing text into a center of a rectangle.
-
 	public void drawRectCenter(Canvas canvas, String text, int rectX, int rectY, int rectW, int rectH) {
 		Rect boundRect = new Rect();
 
@@ -174,7 +179,7 @@ public class GUI {
 			
 			if (game.touchOverRect(button, mX, mY)) {
 				switch(buttonIndex) {
-					//Play Button
+					//Play/Continue Button
 					case 0:{
 							if (game.state == States.Start) {
 								game.setState(States.Playing);
@@ -187,9 +192,8 @@ public class GUI {
 							if (game.state == States.Start) {
 								//About
 							} else if (game.state == States.Death) {
-								// Has to save the score to the text file.
-
 								Bitmap.Config config = Bitmap.Config.ARGB_8888;
+								//TODO:  Hide temporarily buttons while taking the screen shoot. (For some other day...)
 								Bitmap screenShoot = Bitmap.createBitmap(Game.displayMetrics.widthPixels,Game.displayMetrics.heightPixels,config);
 
 								Canvas shootCanvas = new Canvas(screenShoot);

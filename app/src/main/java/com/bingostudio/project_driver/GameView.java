@@ -48,7 +48,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
 	@Override
 	public void draw(Canvas canvas){
-		//Clears canvas
+		//Clears the canvas
 		super.draw(canvas);
 		game.renderOnCanvas(canvas);
 	}

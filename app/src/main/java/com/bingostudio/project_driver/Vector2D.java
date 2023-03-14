@@ -14,4 +14,9 @@ public class Vector2D {
     public String toString(){
         return "x: " + x + " y:" + y;
     }
+
+    public void setTo(float x, float y) {
+        this.x = x;
+        this.y = y;
+    }
 }

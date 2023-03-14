@@ -14,8 +14,6 @@ public class Handler {
 	private int carTimeout = 160; // amount of frames between new car spawning
 	private int bushTimeout = 320;
 	
-	private static final int MAX_VEHICLES = 3;
-	
 	public Handler(Game game) {
 		this.game = game;
 	}
@@ -60,20 +58,21 @@ public class Handler {
 	}
 	
 	public void createOncomingTraffic() {
-		int roadSize = (Game.displayMetrics.widthPixels - 200);
+		int roadSize = Game.roadWidth;
 		
 		int carCount = 0;
 		
-		for (int i = 0; i < MAX_VEHICLES; i++) {
-			boolean isCar = r.nextBoolean();
-			if (isCar && carCount < (MAX_VEHICLES-1)) {
+		for (int i = 0; i < Game.MAX_VEHICLES_IN_ROW; i++) {
+			boolean createCar = r.nextBoolean();
+
+			if (createCar && carCount < (Game.MAX_VEHICLES_IN_ROW - 1)) {
 				carCount++;
-				int columnSize = (roadSize/MAX_VEHICLES);
-				int carWDiff = (columnSize - Car.CAR_SIZE.w);
+				int columnSize = (roadSize/Game.MAX_VEHICLES_IN_ROW);
+				int carWDiff = (columnSize - (int) Car.car_size_px.x);
 				
 				int carXPos = 100 + (columnSize * i) + (carWDiff/2);
 				
-				Car car = new Car(game, carXPos, -Car.CAR_SIZE.h);
+				Car car = new Car(game, carXPos, -(int) Math.ceil(Car.car_size_px.y));
 				addObj(car);
 			}
 		}

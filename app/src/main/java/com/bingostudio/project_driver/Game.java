@@ -27,6 +27,9 @@ public class Game implements Runnable {
 	public final static String TITLE = "Project Driver";
 	public final static int DEFAULT_COLOR = 0xFFFFFFFF;
 	public final static int ALPHA = 0xFFFF00FF;
+
+	public static final int MAX_VEHICLES_IN_ROW = 3;
+
 	public Rectangle[] rects = new Rectangle[2];
 	private RenderHandler renderH;
 
@@ -39,9 +42,13 @@ public class Game implements Runnable {
 	private GUI gui;
 	private Player player;
 
-	private SpriteSheet propSheet;
+	public static Vector2D propSheetScale;
+
+	private static SpriteSheet propSheet;
 
 	public static DisplayMetrics displayMetrics = new DisplayMetrics();
+
+	public static int roadWidth;
 
 	public static class settings{
 		public enum TOUCH_CONTROLS {
@@ -51,7 +58,6 @@ public class Game implements Runnable {
 		}
 
 		public static TOUCH_CONTROLS currentControls = TOUCH_CONTROLS.FRAME_BASED;
-
 	}
 
 	public enum States {
@@ -97,24 +103,30 @@ public class Game implements Runnable {
 			}
 		}
 
+		roadWidth = displayMetrics.widthPixels - 200;
+
 		//Loading resources
 		Bitmap roadBitmap = BitmapFactory.decodeResource(mainAct.getResources(), R.drawable.road_vec);
-		Bitmap scaledBitmap = Bitmap.createScaledBitmap(roadBitmap, displayMetrics.widthPixels - 200, displayMetrics.heightPixels, false);
+		Bitmap scaledBitmap = Bitmap.createScaledBitmap(roadBitmap, roadWidth, displayMetrics.heightPixels, false);
 		loadedPictures.put("road_texture", scaledBitmap);
+
 
 		//Bitmap gets scaled depending on PIXEL DENSITY
 		Bitmap propBitmap = BitmapFactory.decodeResource(mainAct.getResources(), R.drawable.car_spritesalpha);
 
-		propSheet = new SpriteSheet(propBitmap,128 * (propBitmap.getWidth()/384),128 * (propBitmap.getHeight()/384));
+		propSheetScale = new Vector2D(propBitmap.getWidth()/384.f, propBitmap.getHeight()/384.f);
 
-		//startPlayer();
+		// Since our bitmap was scaled up, we need to calculate the new column width/height in px for each tile.
+		propSheet = new SpriteSheet(propBitmap, (int) (128 * propSheetScale.x), (int) (128 * propSheetScale.y));
 
-		//Starts the whole app, basically, should be placed underneath everything.
+		Car.computeCarDimensions();
+		Car.parseCarsFromSprite(propSheet);
+
+		//Starts the app.
 		this.gameView = new GameView(this.mainAct,this);
 
 		System.out.println(displayMetrics.widthPixels + " " + displayMetrics.heightPixels);
 	}
-
 	static final Vector2D MOVE_VECTOR_SCALE = new Vector2D(500, 1000);
 	static final Vector2D MOVE_VECTOR_MAX = new Vector2D(5, 10);
 
@@ -197,6 +209,7 @@ public class Game implements Runnable {
 
 	public synchronized void start() {
 		setGameRunning(true);
+
 		gameThread = new Thread(this);
 		gameThread.start();
 	}
@@ -205,7 +218,7 @@ public class Game implements Runnable {
 		//Reinitialize score to 0, as a new game has started.
 		gui.setScore(0);
 
-		player = new Player(this, new Rectangle(displayMetrics.widthPixels/2 - 190/2,displayMetrics.heightPixels - 384,230,360));
+		player = new Player(this, new Rectangle((int) (100 + roadWidth/2 - Car.car_size_px.x/2), (int) (displayMetrics.heightPixels - Car.car_size_px.y), (int) Car.car_size_px.x, (int) Car.car_size_px.y));
 		handler.addObj(player);
 	}
 
@@ -234,7 +247,7 @@ public class Game implements Runnable {
 
 		Intent sendImg = new Intent();
 		sendImg.setAction(Intent.ACTION_SEND);
-		sendImg.putExtra(Intent.EXTRA_TEXT,"Hey look at my epic score!");
+		sendImg.putExtra(Intent.EXTRA_TEXT,"Hey! I managed to score big in "+ TITLE +". Do you think you can beat my high score of " + gui.getScore() + " points?");
 		sendImg.putExtra(Intent.EXTRA_STREAM, imageUri);
 		sendImg.setType("img/*");
 
@@ -247,7 +260,6 @@ public class Game implements Runnable {
 		renderH.renderRect(rects[0],canvas);
 		renderH.renderRect(rects[1],canvas);
 
-		//Drops frames significantly. (It seems good now :) )
 		for (int i = 0; i < handler.gameObj.size(); i++){
 			GameObject tempObj = handler.gameObj.get(i);
 			tempObj.render(canvas);
@@ -272,12 +284,12 @@ public class Game implements Runnable {
 			delta += (now - lastTime) / ns;
 			lastTime = now;
 			while(delta >= 1){
+				// Each new frame.
 				handler.tick();
 				gui.tick();
 				delta--;
 			}
 			if(gameRunning) {
-
 				canvas = gameView.getSurfaceHolder().lockCanvas();
 				if (canvas != null){
 					gameView.draw(canvas);
@@ -315,10 +327,6 @@ public class Game implements Runnable {
 
 	public GameView getView(){
 		return gameView;
-	}
-
-	public SpriteSheet getPropSheet() {
-		return propSheet;
 	}
 
 	public GUI getGui() {

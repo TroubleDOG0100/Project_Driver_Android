@@ -1,5 +1,6 @@
 package com.bingostudio.project_driver;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
 import java.util.Random;
@@ -12,11 +13,13 @@ public class Player extends GameObject {
 	private RenderHandler renderH;
 	private Handler handler;
 	
-	private int[] speeds = {10,8,5};
+	private int[] speeds = {12,10,7};
  	private Random r = new Random();
 
  	private int sideDir = 0;
  	private int topBottomDir = 0;
+
+	 private Bitmap playerScaledBitmap;
 
 	private Vector2D moveVector = new Vector2D();
 	
@@ -26,6 +29,7 @@ public class Player extends GameObject {
 		this.renderH = game.getRenderH();
 		this.handler = game.getHandler();
 
+		playerScaledBitmap = Car.trafficCars[0];
 	}
 
 	public void setSideDir(int dir){
@@ -70,8 +74,8 @@ public class Player extends GameObject {
 
 	@Override
 	public void render(Canvas canvas) {
-		//renderH.renderRect(rect, canvas);
-		renderH.renderSprite(game.getPropSheet().sheetImg,rect.x,rect.y,0,0,game.getPropSheet().rowSize,game.getPropSheet().columnSize,canvas);
+		renderH.renderImg(playerScaledBitmap, rect.x, rect.y, canvas);
+//		renderH.renderSprite(game.getPropSheet().sheetImg,rect.x,rect.y,0,0,game.getPropSheet().rowSize,game.getPropSheet().columnSize,canvas);
 	}
 
 }

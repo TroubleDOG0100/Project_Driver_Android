@@ -28,11 +28,6 @@ public class RenderHandler {
 		view.getPixels(pixels,0,Game.displayMetrics.widthPixels,0,0,Game.displayMetrics.widthPixels,Game.displayMetrics.heightPixels);//((DataBufferInt) view.getRaster().getDataBuffer()).getData();
 	}
 
-	public void render(Canvas canvas) {
-		//canvas.drawBitmap(view, 0,0,null);
-		//g.drawImage(view, 0, 0, Game.WIDTH, Game.HEIGHT, null);
-	}
-
 	public void clear() {
 		for (int i = 0; i < pixels.length; i++) {
 			pixels[i] = 0;
@@ -65,7 +60,7 @@ public class RenderHandler {
 
 		int spriteXPos = rowSize * row;
 		int spriteYPos = columnSize * column;
-		canvas.drawBitmap(spriteSheet,new Rect(spriteXPos, spriteYPos,rowSize + spriteXPos, columnSize + spriteYPos), new Rect(x, y, rowSize + x, columnSize + y), null);
+		canvas.drawBitmap(spriteSheet, new Rect(spriteXPos, spriteYPos,rowSize + spriteXPos, columnSize + spriteYPos), new Rect(x, y, rowSize + x, columnSize + y), null);
 		//System.out.println("One sprite took:" + (System.currentTimeMillis()-spriteStart));
 	}
 
@@ -76,7 +71,7 @@ public class RenderHandler {
 	
 	public void setPixel(int objPixel, int x, int y) {
 		int pixelIndex = 0;
-		//Check if the pixel is in the bounds player visible area.
+		//Check if the pixel is in the bounds of player visible area.
 		if (x >= camera.x && y >= camera.y && (camera.x + camera.w) > x && (camera.y + camera.h) > y) {
 			pixelIndex = (x - camera.x) + (y - camera.y) * view.getWidth();
 		}
