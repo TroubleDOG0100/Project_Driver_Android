@@ -13,7 +13,7 @@ public class Player extends GameObject {
 	private RenderHandler renderH;
 	private Handler handler;
 	
-	private int[] speeds = {12,10,7};
+	private int[] speeds = {14,12,8};
  	private Random r = new Random();
 
  	private int sideDir = 0;
